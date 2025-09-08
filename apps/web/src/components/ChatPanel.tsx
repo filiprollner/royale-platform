@@ -1,8 +1,57 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@royale-platform/ui';
+// import { Button } from '@royale-platform/ui';
 import { useGameStore } from '../store/gameStore';
-import { formatTime } from '@royale-platform/shared';
+// import { formatTime } from '@royale-platform/shared';
+
+// Define utility functions locally to avoid import issues
+const formatTime = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+};
+
+// Simple Button component to avoid import issues
+const Button: React.FC<{
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'success';
+  loading?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+}> = ({ children, onClick, disabled, className = '', variant = 'primary', loading = false, size = 'md' }) => {
+  const baseClasses = "inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+  
+  const sizeClasses = {
+    sm: "px-4 py-2 text-sm",
+    md: "px-6 py-3 text-base",
+    lg: "px-8 py-4 text-lg"
+  };
+  
+  const variantClasses = {
+    primary: "bg-accent text-white hover:bg-accent/90 focus:ring-accent",
+    secondary: "bg-white/10 text-white hover:bg-white/20 focus:ring-white/50",
+    ghost: "bg-transparent text-white hover:bg-white/10 focus:ring-white/50",
+    success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
+  };
+  
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+    >
+      {loading ? (
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+      ) : null}
+      {children}
+    </button>
+  );
+};
 
 interface ChatPanelProps {
   onSendMessage: (message: string) => void;
