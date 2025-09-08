@@ -100,14 +100,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Implementation provided by useSocket hook
   },
   
-  performAction: (action) => {
+  performAction: (action: { type: 'bet'; amount: number } | { type: 'hit' } | { type: 'stand' }) => {
     const { currentPlayer } = get();
     if (!currentPlayer) return;
     
     const fullAction: PlayerAction = {
       ...action,
       playerId: currentPlayer.id
-    };
+    } as PlayerAction;
     
     // Implementation provided by useSocket hook
   },

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@royale-platform/ui';
 import { useSocket } from '../hooks/useSocket';
 import { useGameStore } from '../store/gameStore';
-import { RoomConfig } from '@royale-platform/shared';
+import { RoomConfig, Player } from '@royale-platform/shared';
 
 export const Lobby: React.FC = () => {
   const navigate = useNavigate();

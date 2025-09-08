@@ -129,13 +129,13 @@ export const useSocket = () => {
     });
   };
 
-  const performAction = (action: Omit<PlayerAction, 'playerId'>) => {
+  const performAction = (action: { type: 'bet'; amount: number } | { type: 'hit' } | { type: 'stand' }) => {
     if (!socketRef.current || !currentRoomId || !currentPlayer) return;
     
     const fullAction: PlayerAction = {
       ...action,
       playerId: currentPlayer.id
-    };
+    } as PlayerAction;
     
     socketRef.current.emit(SocketEvents["action"], { 
       roomId: currentRoomId, 

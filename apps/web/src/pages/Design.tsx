@@ -76,8 +76,8 @@ const mockPlayers: Player[] = [
 ];
 
 const mockGameState: GameState = {
-  id: 'demo-game',
-  name: 'Design Showcase',
+  handNo: 1,
+  dealerSeat: 0,
   minBet: 50,
   maxPlayers: 9,
   players: mockPlayers,
@@ -199,19 +199,19 @@ export const Design: React.FC = () => {
             <h3 className="text-xl font-bold text-white">Avatars</h3>
             <div className="flex gap-4">
               <Avatar
-                player={{ id: '1', name: 'Alice', avatar: '', balance: 0, isOnline: true, isDealer: false, seatIndex: 0, currentBet: 0, cards: [], hasActed: false, isAllIn: false }}
+                player={{ id: '1', name: 'Alice', avatar: '', balance: 0, seat: 0, isOnline: true, isDealer: false, seatIndex: 0, currentBet: 0, cards: [], hasActed: false, isAllIn: false }}
                 size={48}
                 isOnline={true}
                 isDealer={false}
               />
               <Avatar
-                player={{ id: '2', name: 'Bob', avatar: '', balance: 0, isOnline: true, isDealer: true, seatIndex: 1, currentBet: 0, cards: [], hasActed: false, isAllIn: false }}
+                player={{ id: '2', name: 'Bob', avatar: '', balance: 0, seat: 1, isOnline: true, isDealer: true, seatIndex: 1, currentBet: 0, cards: [], hasActed: false, isAllIn: false }}
                 size={56}
                 isOnline={true}
                 isDealer={true}
               />
               <Avatar
-                player={{ id: '3', name: 'Charlie', avatar: '', balance: 0, isOnline: false, isDealer: false, seatIndex: 2, currentBet: 0, cards: [], hasActed: false, isAllIn: false }}
+                player={{ id: '3', name: 'Charlie', avatar: '', balance: 0, seat: 2, isOnline: false, isDealer: false, seatIndex: 2, currentBet: 0, cards: [], hasActed: false, isAllIn: false }}
                 size={48}
                 isOnline={false}
                 isDealer={false}

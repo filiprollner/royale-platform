@@ -38,11 +38,11 @@ export const Room: React.FC = () => {
 
   const handleAction = (actionType: string, amount?: number) => {
     if (actionType === 'bet' && amount) {
-      performAction({ type: 'bet', amount });
+      performAction({ type: 'bet', amount } as { type: 'bet'; amount: number });
     } else if (actionType === 'hit') {
-      performAction({ type: 'hit' });
+      performAction({ type: 'hit' } as { type: 'hit' });
     } else if (actionType === 'stand') {
-      performAction({ type: 'stand' });
+      performAction({ type: 'stand' } as { type: 'stand' });
     }
   };
 
