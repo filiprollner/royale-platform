@@ -1,10 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Button } from '@royale-platform/ui';
+// import { Button } from '@royale-platform/ui';
 import { useSocket } from '../hooks/useSocket';
 import { useGameStore } from '../store/gameStore';
 import { RoomConfig, Player } from '@royale-platform/shared';
+
+// Simple Button component to avoid import issues
+const Button: React.FC<{
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
+  variant?: 'primary' | 'secondary';
+}> = ({ children, onClick, disabled, className = '', variant = 'primary' }) => {
+  const baseClasses = "px-6 py-3 rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+  const variantClasses = variant === 'primary' 
+    ? "bg-accent text-white hover:bg-accent/90 focus:ring-accent" 
+    : "bg-white/10 text-white hover:bg-white/20 focus:ring-white/50";
+  
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variantClasses} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
 
 export const Lobby: React.FC = () => {
   const navigate = useNavigate();
