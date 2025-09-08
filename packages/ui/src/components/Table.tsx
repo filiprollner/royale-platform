@@ -28,7 +28,7 @@ export const Table: React.FC<TableProps> = ({
         player={player}
         position={position}
         isDealer={player?.isDealer || false}
-        isActive={gameState.phase === 'acting' && player?.id === gameState.timer?.targetPlayerId}
+        isActive={gameState.phase === 'acting' && player?.id === (gameState.timer as any)?.targetPlayerId}
         onClick={() => onSeatClick?.(index)}
       />
     );
@@ -71,7 +71,7 @@ export const Table: React.FC<TableProps> = ({
       {/* Dealer Button */}
       {gameState.players.some(p => p.isDealer) && (
         <DealerButton 
-          dealerIndex={gameState.currentDealerIndex}
+          dealerIndex={gameState.currentDealerIndex || 0}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
         />
       )}
