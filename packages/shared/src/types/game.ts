@@ -16,7 +16,12 @@ export type Phase =
   | "acting"
   | "finished";
 
-export type SeatPosition = number;
+export type SeatPosition = {
+  index: number;   // 0-based seat index around the table
+  angle: number;   // radians, 0 = +X, -PI/2 = top center
+  x: number;       // unit circle X (multiply by table radius in UI)
+  y: number;       // unit circle Y
+};
 
 export type RoomConfig = {
   name?: string;
