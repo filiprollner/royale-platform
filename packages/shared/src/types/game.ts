@@ -52,6 +52,8 @@ export type Player = {
 export type TimerState = {
   endsAt: number;        // epoch ms
   seconds?: number;
+  type?: 'betting' | 'acting' | 'dealer';
+  remaining?: number;    // ms remaining
 };
 
 export type GameState = {
@@ -100,11 +102,20 @@ export type PlayerAction =
   | (PlayerActionBase & { type: "hit" })
   | (PlayerActionBase & { type: "stand" });
 
+// For frontend use - actions without playerId
+export type PlayerActionWithoutId = 
+  | { type: "bet"; amount: number }
+  | { type: "hit" }
+  | { type: "stand" };
+
 export type ChatMessage = {
   id?: string;        // server may assign one
   from: PlayerId;
+  playerName?: string; // for display
   text: string;
+  message?: string;    // alias for text
   at: number;         // ms epoch
+  timestamp?: number;  // alias for at
 };
 
 export interface GameRules {
@@ -128,6 +139,13 @@ export const SocketEvents = {
   "timer:tock": "timer:tock",
   "chat:message": "chat:message",
   "notice": "notice",
+  "error": "error",
+  "room:create": "room:create",
+  "room:join": "room:join",
+  "room:leave": "room:leave",
+  "hand:start": "hand:start",
+  "action": "action",
+  "chat:post": "chat:post",
 } as const;
 
 export type SocketEvents = typeof SocketEvents;

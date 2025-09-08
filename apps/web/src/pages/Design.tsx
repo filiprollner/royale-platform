@@ -12,11 +12,12 @@ const mockPlayers: Player[] = [
     balance: 2500,
     isOnline: true,
     isDealer: true,
+    seat: 0,
     seatIndex: 0,
     currentBet: 100,
     cards: [
-      { suit: 'hearts', rank: 'A', value: 11 },
-      { suit: 'spades', rank: 'K', value: 10 }
+      { s: 'hearts', r: 'A' },
+      { s: 'spades', r: 'K' }
     ],
     hasActed: false,
     isAllIn: false
@@ -28,11 +29,12 @@ const mockPlayers: Player[] = [
     balance: 1800,
     isOnline: true,
     isDealer: false,
+    seat: 1,
     seatIndex: 1,
     currentBet: 150,
     cards: [
-      { suit: 'diamonds', rank: '10', value: 10 },
-      { suit: 'clubs', rank: '7', value: 7 }
+      { s: 'diamonds', r: 'T' },
+      { s: 'clubs', r: '7' }
     ],
     hasActed: false,
     isAllIn: false
@@ -44,11 +46,12 @@ const mockPlayers: Player[] = [
     balance: 3200,
     isOnline: true,
     isDealer: false,
+    seat: 2,
     seatIndex: 2,
     currentBet: 200,
     cards: [
-      { suit: 'hearts', rank: 'Q', value: 10 },
-      { suit: 'spades', rank: '6', value: 6 }
+      { s: 'hearts', r: 'Q' },
+      { s: 'spades', r: '6' }
     ],
     hasActed: true,
     isAllIn: false
@@ -60,11 +63,12 @@ const mockPlayers: Player[] = [
     balance: 950,
     isOnline: true,
     isDealer: false,
+    seat: 3,
     seatIndex: 3,
     currentBet: 75,
     cards: [
-      { suit: 'clubs', rank: '9', value: 9 },
-      { suit: 'diamonds', rank: '8', value: 8 }
+      { s: 'clubs', r: '9' },
+      { s: 'diamonds', r: '8' }
     ],
     hasActed: false,
     isAllIn: false
@@ -81,15 +85,15 @@ const mockGameState: GameState = {
   currentPlayIndex: 1,
   phase: 'acting',
   dealerCards: [
-    { suit: 'hearts', rank: 'A', value: 11 },
-    { suit: 'spades', rank: '5', value: 5 }
+    { s: 'hearts', r: 'A' },
+    { s: 'spades', r: '5' }
   ],
   communityCards: [],
   pot: 525,
   timer: {
+    endsAt: Date.now() + 45000,
     type: 'acting',
     remaining: 45,
-    targetPlayerId: 'player2'
   },
   roundNumber: 1,
   playNumber: 1,
@@ -145,34 +149,34 @@ export const Design: React.FC = () => {
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Card
-                  card={{ suit: 'hearts', rank: 'A', value: 11 }}
+                  card={{ s: 'hearts', r: 'A' }}
                   size="sm"
                   isFaceUp={true}
                 />
                 <Card
-                  card={{ suit: 'spades', rank: 'K', value: 10 }}
+                  card={{ s: 'spades', r: 'K' }}
                   size="sm"
                   isFaceUp={true}
                 />
                 <Card
-                  card={{ suit: 'diamonds', rank: 'Q', value: 10 }}
+                  card={{ s: 'diamonds', r: 'Q' }}
                   size="sm"
                   isFaceUp={true}
                 />
                 <Card
-                  card={{ suit: 'clubs', rank: 'J', value: 10 }}
+                  card={{ s: 'clubs', r: 'J' }}
                   size="sm"
                   isFaceUp={true}
                 />
               </div>
               <div className="flex gap-2">
                 <Card
-                  card={{ suit: 'hearts', rank: 'A', value: 11 }}
+                  card={{ s: 'hearts', r: 'A' }}
                   size="md"
                   isFaceUp={false}
                 />
                 <Card
-                  card={{ suit: 'spades', rank: 'K', value: 10 }}
+                  card={{ s: 'spades', r: 'K' }}
                   size="md"
                   isFaceUp={false}
                 />

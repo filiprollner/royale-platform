@@ -35,13 +35,15 @@ export const Lobby: React.FC = () => {
       maxPlayers: 9
     };
     
-    const player = {
+    const player: Player = {
       id: `player_${Date.now()}`,
       name: playerName.trim(),
       avatar: '',
+      balance: 1000,
+      seat: 0,
+      seatIndex: 0,
       isOnline: true,
-      isDealer: false,
-      seatIndex: 0
+      isDealer: false
     };
     
     // Set current player in store
@@ -62,13 +64,15 @@ export const Lobby: React.FC = () => {
     
     setIsJoining(true);
     
-    const player = {
+    const player: Player = {
       id: `player_${Date.now()}`,
       name: playerName.trim(),
       avatar: '',
+      balance: 1000,
+      seat: 0,
+      seatIndex: 0,
       isOnline: true,
-      isDealer: false,
-      seatIndex: 0
+      isDealer: false
     };
     
     // Set current player in store

@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { useGameStore } from '../store/gameStore';
 import { SocketEvents, PlayerAction, ChatMessage } from '@royale-platform/shared';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'ws://localhost:3001';
+const SERVER_URL = (import.meta as any).env.VITE_SERVER_URL || 'ws://localhost:3001';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
@@ -40,7 +40,7 @@ export const useSocket = () => {
     });
 
     // Game events
-    socket.on(SocketEvents.ROOM_STATE, (gameState) => {
+    socket.on(SocketEvents["room:state"], (gameState) => {
       console.log('Room state updated:', gameState);
       setGameState(gameState);
       
@@ -73,22 +73,22 @@ export const useSocket = () => {
       }
     });
 
-    socket.on(SocketEvents.TIMER_TOCK, (timerData) => {
+    socket.on(SocketEvents["timer:tock"], (timerData) => {
       console.log('Timer update:', timerData);
       // Handle timer updates if needed
     });
 
-    socket.on(SocketEvents.CHAT_MESSAGE, (message: ChatMessage) => {
+    socket.on(SocketEvents["chat:message"], (message: ChatMessage) => {
       console.log('Chat message:', message);
       addMessage(message);
     });
 
-    socket.on(SocketEvents.NOTICE, (notice) => {
+    socket.on(SocketEvents["notice"], (notice) => {
       console.log('Notice:', notice);
       // Handle notices if needed
     });
 
-    socket.on(SocketEvents.ERROR, (error) => {
+    socket.on(SocketEvents["error"], (error) => {
       console.error('Socket error:', error);
       setError(error.message || 'An error occurred');
     });
@@ -102,19 +102,19 @@ export const useSocket = () => {
   const createRoom = (config: any, player: any) => {
     if (!socketRef.current) return;
     
-    socketRef.current.emit(SocketEvents.ROOM_CREATE, { config, player });
+    socketRef.current.emit(SocketEvents["room:create"], { config, player });
   };
 
   const joinRoom = (roomId: string, player: any) => {
     if (!socketRef.current) return;
     
-    socketRef.current.emit(SocketEvents.ROOM_JOIN, { roomId, player });
+    socketRef.current.emit(SocketEvents["room:join"], { roomId, player });
   };
 
   const leaveRoom = () => {
     if (!socketRef.current || !currentRoomId) return;
     
-    socketRef.current.emit(SocketEvents.ROOM_LEAVE, { 
+    socketRef.current.emit(SocketEvents["room:leave"], { 
       roomId: currentRoomId, 
       playerId: currentPlayer?.id 
     });
@@ -123,7 +123,7 @@ export const useSocket = () => {
   const startHand = () => {
     if (!socketRef.current || !currentRoomId || !currentPlayer) return;
     
-    socketRef.current.emit(SocketEvents.HAND_START, { 
+    socketRef.current.emit(SocketEvents["hand:start"], { 
       roomId: currentRoomId, 
       playerId: currentPlayer.id 
     });
@@ -137,7 +137,7 @@ export const useSocket = () => {
       playerId: currentPlayer.id
     };
     
-    socketRef.current.emit(SocketEvents.ACTION, { 
+    socketRef.current.emit(SocketEvents["action"], { 
       roomId: currentRoomId, 
       action: fullAction 
     });
@@ -146,7 +146,7 @@ export const useSocket = () => {
   const sendChatMessage = (message: string) => {
     if (!socketRef.current || !currentRoomId || !currentPlayer) return;
     
-    socketRef.current.emit(SocketEvents.CHAT_POST, { 
+    socketRef.current.emit(SocketEvents["chat:post"], { 
       roomId: currentRoomId, 
       message, 
       playerId: currentPlayer.id 
