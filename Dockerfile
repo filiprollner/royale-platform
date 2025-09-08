@@ -9,7 +9,6 @@ RUN npm ci --prefix ./packages/shared --include=dev || npm install --prefix ./pa
 RUN npm run build --prefix ./packages/shared
 
 # server
-COPY apps/server/package-lock.json ./apps/server/package-lock.json
 COPY apps/server/package.json ./apps/server/package.json
 COPY apps/server/tsconfig.json ./apps/server/tsconfig.json
 COPY apps/server/src ./apps/server/src
