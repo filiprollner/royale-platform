@@ -1,5 +1,21 @@
-import { GameState, Player, PlayerAction, RoomConfig, GameResult } from '@royale-platform/shared';
+import { 
+  GameState as SharedGameState, 
+  Player as SharedPlayer, 
+  PlayerAction, 
+  RoomConfig, 
+  GameResult,
+  Card,
+  createDeck,
+  shuffleDeck,
+  calculateHandValue,
+  isBlackjack,
+  isBust,
+  evaluateHand,
+  shouldDealerHit,
+  compareHands
+} from '@royale-platform/shared';
 import { DealerBlackjack } from './rules/dealerBlackjack';
+import { GameState, Player, RuntimeTimer } from './types';
 
 export class GameEngine {
   private gameState: GameState;
@@ -16,7 +32,8 @@ export class GameEngine {
   }
 
   addPlayer(player: Omit<Player, 'balance' | 'currentBet' | 'cards' | 'hasActed' | 'isAllIn'>): boolean {
-    if (this.gameState.players.length >= this.gameState.maxPlayers) {
+    const maxPlayers = this.gameState.maxPlayers ?? 9;
+    if (this.gameState.players.length >= maxPlayers) {
       return false;
     }
 
@@ -75,6 +92,8 @@ export class GameEngine {
     // Start betting phase
     this.gameState.phase = 'betting';
     this.gameState.timer = {
+      startedAt: Date.now(),
+      durationMs: 60000,
       type: 'betting',
       remaining: 60
     };
@@ -112,8 +131,9 @@ export class GameEngine {
 
   private moveToNextDealer(): void {
     // Find next dealer
-    const currentDealerIndex = this.gameState.currentDealerIndex;
-    let nextDealerIndex = (currentDealerIndex + 1) % this.gameState.maxPlayers;
+    const currentDealerIndex = this.gameState.currentDealerIndex ?? 0;
+    const maxPlayers = this.gameState.maxPlayers ?? 9;
+    let nextDealerIndex = (currentDealerIndex + 1) % maxPlayers;
     
     // Find next available player
     while (nextDealerIndex !== currentDealerIndex) {
@@ -121,7 +141,7 @@ export class GameEngine {
       if (player && player.isOnline) {
         break;
       }
-      nextDealerIndex = (nextDealerIndex + 1) % this.gameState.maxPlayers;
+      nextDealerIndex = (nextDealerIndex + 1) % maxPlayers;
     }
 
     // Update dealer
@@ -130,11 +150,11 @@ export class GameEngine {
     });
 
     this.gameState.currentDealerIndex = nextDealerIndex;
-    this.gameState.playNumber++;
+    this.gameState.playNumber = (this.gameState.playNumber ?? 0) + 1;
 
     // Check if round is complete
-    if (this.gameState.playNumber > this.gameState.players.length) {
-      this.gameState.roundNumber++;
+    if ((this.gameState.playNumber ?? 0) > this.gameState.players.length) {
+      this.gameState.roundNumber = (this.gameState.roundNumber ?? 0) + 1;
       this.gameState.playNumber = 1;
     }
 
@@ -160,9 +180,10 @@ export class GameEngine {
     this.timer = setInterval(() => {
       if (!this.gameState.timer) return;
 
-      this.gameState.timer.remaining--;
+      const remaining = Math.max(0, Math.ceil((this.gameState.timer.startedAt + this.gameState.timer.durationMs - Date.now()) / 1000));
+      this.gameState.timer.remaining = remaining;
 
-      if (this.gameState.timer.remaining <= 0) {
+      if (remaining <= 0) {
         this.handleTimerExpired();
       }
     }, 1000);
@@ -175,7 +196,7 @@ export class GameEngine {
       case 'betting':
         // Auto-bet minimum for players who haven't bet
         this.gameState.players.forEach(player => {
-          if (!player.isDealer && player.isOnline && player.currentBet < this.gameState.minBet) {
+          if (!player.isDealer && player.isOnline && (player.currentBet ?? 0) < this.gameState.minBet) {
             player.currentBet = this.gameState.minBet;
             player.balance -= this.gameState.minBet;
           }
@@ -208,6 +229,8 @@ export class GameEngine {
     
     if (nextPlayer) {
       this.gameState.timer = {
+        startedAt: Date.now(),
+        durationMs: 60000,
         type: 'acting',
         remaining: 60,
         targetPlayerId: nextPlayer.id
@@ -217,6 +240,8 @@ export class GameEngine {
       // All players acted, move to dealer phase
       this.gameState.phase = 'dealer';
       this.gameState.timer = {
+        startedAt: Date.now(),
+        durationMs: 30000,
         type: 'dealer',
         remaining: 30
       };
@@ -231,16 +256,16 @@ export class GameEngine {
     if (!dealer) return;
 
     // Dealer plays according to blackjack rules
-    const { createDeck, shuffleDeck, evaluateHand, shouldDealerHit } = require('@royale-platform/shared');
     const deck = shuffleDeck(createDeck(), this.gameState.seed);
-    let deckIndex = dealer.cards.length + 2; // Account for initial cards
+    let deckIndex = (dealer.cards?.length ?? 0) + 2; // Account for initial cards
 
     while (true) {
-      const hand = evaluateHand(dealer.cards);
-      if (!shouldDealerHit(hand)) break;
+      const handValue = calculateHandValue(dealer.cards ?? []);
+      if (!shouldDealerHit(dealer.cards ?? [])) break;
       
       // Deal a card
       const newCard = deck[deckIndex++];
+      if (!dealer.cards) dealer.cards = [];
       dealer.cards.push(newCard);
     }
 
@@ -257,16 +282,4 @@ export class GameEngine {
       clearTimeout(this.timer);
     }
   }
-}
-
-export function calculateHandValue(cards: { r: string; s: string }[]) {
-  let sum = 0, aces = 0;
-  for (const c of cards) {
-    const r = c.r;
-    if (r === 'A') { aces++; sum += 1; }
-    else if (r === 'T' || r === 'J' || r === 'Q' || r === 'K') { sum += 10; }
-    else { sum += parseInt(r, 10) || 0; }
-  }
-  while (aces > 0 && sum + 10 <= 21) { sum += 10; aces--; }
-  return sum;
 }

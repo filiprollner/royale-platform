@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { GameNamespace } from "./socket/GameNamespace";
 
 async function main() {
   const app = Fastify({ logger: true });
@@ -12,11 +13,21 @@ async function main() {
   app.get("/healthz", async () => ({ ok: true }));
 
   const httpServer = createServer(app as any);
-  const io = new Server(httpServer, { path: "/game", cors: { origin: "*" } });
-  // TODO: wire namespaces, handlers...
+  const io = new Server(httpServer, { 
+    path: "/game", 
+    cors: { origin: "*" },
+    transports: ['websocket']
+  });
+
+  // Initialize game namespace
+  new GameNamespace(io);
 
   const port = Number(process.env.PORT ?? 3001);
-  await app.listen({ port, host: "0.0.0.0" });
+  const host = process.env.HOST ?? "0.0.0.0";
+  
+  await app.listen({ port, host });
+  console.log(`Server listening on ${host}:${port}`);
+  console.log('Socket.IO server initialized');
 }
 
 main().catch((err) => {

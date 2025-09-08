@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { GameEngine } from '../engine/GameEngine';
 import { RoomConfig, PlayerAction, ChatMessage, SocketEvents } from '@royale-platform/shared';
+import { ServerEvents } from '../engine/types';
 
 export class GameNamespace {
   private io: SocketIOServer;
@@ -19,32 +20,32 @@ export class GameNamespace {
       console.log(`Player connected: ${socket.id}`);
 
       // Room creation
-      socket.on(SocketEvents.ROOM_CREATE, (data: { config: RoomConfig; player: any }) => {
+      socket.on(ServerEvents["room:create"], (data: { config: RoomConfig; player: any }) => {
         this.handleRoomCreate(socket, data);
       });
 
       // Room joining
-      socket.on(SocketEvents.ROOM_JOIN, (data: { roomId: string; player: any }) => {
+      socket.on(ServerEvents["room:join"], (data: { roomId: string; player: any }) => {
         this.handleRoomJoin(socket, data);
       });
 
       // Room leaving
-      socket.on(SocketEvents.ROOM_LEAVE, (data: { roomId: string; playerId: string }) => {
+      socket.on(ServerEvents["room:leave"], (data: { roomId: string; playerId: string }) => {
         this.handleRoomLeave(socket, data);
       });
 
       // Hand starting
-      socket.on(SocketEvents.HAND_START, (data: { roomId: string; playerId: string }) => {
+      socket.on(ServerEvents["hand:start"], (data: { roomId: string; playerId: string }) => {
         this.handleHandStart(socket, data);
       });
 
       // Player actions
-      socket.on(SocketEvents.ACTION, (data: { roomId: string; action: PlayerAction }) => {
+      socket.on(ServerEvents["action"], (data: { roomId: string; action: PlayerAction }) => {
         this.handleAction(socket, data);
       });
 
       // Chat messages
-      socket.on(SocketEvents.CHAT_POST, (data: { roomId: string; message: string; playerId: string }) => {
+      socket.on(ServerEvents["chat:post"], (data: { roomId: string; message: string; playerId: string }) => {
         this.handleChatMessage(socket, data);
       });
 
@@ -64,14 +65,16 @@ export class GameNamespace {
       const success = game.addPlayer({
         id: data.player.id,
         name: data.player.name,
-        avatar: data.player.avatar,
+        seat: 0,
+        balance: 0,
         isOnline: true,
         isDealer: false,
-        seatIndex: 0
+        seatIndex: 0,
+        avatar: data.player.avatar
       });
 
       if (!success) {
-        socket.emit(SocketEvents.ERROR, { message: 'Failed to create room' });
+        socket.emit(ServerEvents["error"], { message: 'Failed to create room' });
         return;
       }
 
@@ -79,12 +82,12 @@ export class GameNamespace {
       this.playerSockets.set(data.player.id, socket.id);
 
       socket.join(gameId);
-      socket.emit(SocketEvents.ROOM_STATE, game.getState());
+      socket.emit(SocketEvents["room:state"], game.getState());
       
       console.log(`Room created: ${gameId}`);
     } catch (error) {
       console.error('Error creating room:', error);
-      socket.emit(SocketEvents.ERROR, { message: 'Failed to create room' });
+      socket.emit(ServerEvents["error"], { message: 'Failed to create room' });
     }
   }
 
@@ -92,16 +95,17 @@ export class GameNamespace {
     try {
       const game = this.games.get(data.roomId);
       if (!game) {
-        socket.emit(SocketEvents.ERROR, { message: 'Room not found' });
+        socket.emit(ServerEvents["error"], { message: 'Room not found' });
         return;
       }
 
       // Find available seat
       const gameState = game.getState();
       const occupiedSeats = gameState.players.map(p => p.seatIndex);
+      const maxPlayers = gameState.maxPlayers ?? 9;
       let availableSeat = -1;
       
-      for (let i = 0; i < gameState.maxPlayers; i++) {
+      for (let i = 0; i < maxPlayers; i++) {
         if (!occupiedSeats.includes(i)) {
           availableSeat = i;
           break;
@@ -109,21 +113,23 @@ export class GameNamespace {
       }
 
       if (availableSeat === -1) {
-        socket.emit(SocketEvents.ERROR, { message: 'Room is full' });
+        socket.emit(ServerEvents["error"], { message: 'Room is full' });
         return;
       }
 
       const success = game.addPlayer({
         id: data.player.id,
         name: data.player.name,
-        avatar: data.player.avatar,
+        seat: availableSeat,
+        balance: 0,
         isOnline: true,
         isDealer: false,
-        seatIndex: availableSeat
+        seatIndex: availableSeat,
+        avatar: data.player.avatar
       });
 
       if (!success) {
-        socket.emit(SocketEvents.ERROR, { message: 'Failed to join room' });
+        socket.emit(ServerEvents["error"], { message: 'Failed to join room' });
         return;
       }
 
@@ -136,7 +142,7 @@ export class GameNamespace {
       console.log(`Player ${data.player.name} joined room ${data.roomId}`);
     } catch (error) {
       console.error('Error joining room:', error);
-      socket.emit(SocketEvents.ERROR, { message: 'Failed to join room' });
+      socket.emit(ServerEvents["error"], { message: 'Failed to join room' });
     }
   }
 
@@ -164,7 +170,7 @@ export class GameNamespace {
     try {
       const game = this.games.get(data.roomId);
       if (!game) {
-        socket.emit(SocketEvents.ERROR, { message: 'Room not found' });
+        socket.emit(ServerEvents["error"], { message: 'Room not found' });
         return;
       }
 
@@ -172,7 +178,7 @@ export class GameNamespace {
       const player = gameState.players.find(p => p.id === data.playerId);
       
       if (!player || !player.isOnline) {
-        socket.emit(SocketEvents.ERROR, { message: 'Player not found or offline' });
+        socket.emit(ServerEvents["error"], { message: 'Player not found or offline' });
         return;
       }
 
@@ -183,7 +189,7 @@ export class GameNamespace {
       console.log(`Hand started in room ${data.roomId}`);
     } catch (error) {
       console.error('Error starting hand:', error);
-      socket.emit(SocketEvents.ERROR, { message: 'Failed to start hand' });
+      socket.emit(ServerEvents["error"], { message: 'Failed to start hand' });
     }
   }
 
@@ -191,7 +197,7 @@ export class GameNamespace {
     try {
       const game = this.games.get(data.roomId);
       if (!game) {
-        socket.emit(SocketEvents.ERROR, { message: 'Room not found' });
+        socket.emit(ServerEvents["error"], { message: 'Room not found' });
         return;
       }
 
@@ -199,14 +205,14 @@ export class GameNamespace {
       const player = gameState.players.find(p => p.id === data.action.playerId);
       
       if (!player || !player.isOnline) {
-        socket.emit(SocketEvents.ERROR, { message: 'Player not found or offline' });
+        socket.emit(ServerEvents["error"], { message: 'Player not found or offline' });
         return;
       }
 
       // Check if action is legal
       const legalActions = game.getLegalActions(data.action.playerId);
       if (!legalActions.includes(data.action.type)) {
-        socket.emit(SocketEvents.ERROR, { message: 'Illegal action' });
+        socket.emit(ServerEvents["error"], { message: 'Illegal action' });
         return;
       }
 
@@ -217,7 +223,7 @@ export class GameNamespace {
       console.log(`Action ${data.action.type} processed for player ${data.action.playerId}`);
     } catch (error) {
       console.error('Error processing action:', error);
-      socket.emit(SocketEvents.ERROR, { message: 'Failed to process action' });
+      socket.emit(ServerEvents["error"], { message: 'Failed to process action' });
     }
   }
 
@@ -237,14 +243,13 @@ export class GameNamespace {
 
       const chatMessage: ChatMessage = {
         id: this.generateMessageId(),
-        playerId: data.playerId,
-        playerName: player.name,
-        message: data.message,
-        timestamp: Date.now()
+        from: data.playerId,
+        text: data.message,
+        at: Date.now()
       };
 
       // Broadcast to all players in room
-      this.io.of('/game').to(data.roomId).emit(SocketEvents.CHAT_MESSAGE, chatMessage);
+      this.io.of('/game').to(data.roomId).emit(SocketEvents["chat:message"], chatMessage);
       
       console.log(`Chat message from ${player.name}: ${data.message}`);
     } catch (error) {
@@ -274,7 +279,7 @@ export class GameNamespace {
     if (!game) return;
 
     const state = game.getState();
-    this.io.of('/game').to(roomId).emit(SocketEvents.ROOM_STATE, state);
+    this.io.of('/game').to(roomId).emit(SocketEvents["room:state"], state);
   }
 
   private generateGameId(): string {

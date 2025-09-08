@@ -1,9 +1,10 @@
 import { 
   GameRules, 
-  GameState, 
-  Player, 
+  GameState as SharedGameState, 
+  Player as SharedPlayer, 
   PlayerAction, 
   RoomConfig, 
+  GameResult,
   Card,
   createDeck,
   shuffleDeck,
@@ -14,6 +15,7 @@ import {
   shouldDealerHit,
   compareHands
 } from '@royale-platform/shared';
+import { GameState, Player } from '../types';
 import seedrandom from 'seedrandom';
 
 export class DealerBlackjack implements GameRules {
@@ -26,14 +28,18 @@ export class DealerBlackjack implements GameRules {
     const players: Player[] = [];
     
     return {
+      phase: 'waiting',
+      handNo: 1,
+      dealerSeat: 0,
+      minBet: config.minBet,
+      players,
+      bets: {},
+      // Runtime extensions
       id: this.generateGameId(),
       name: config.name,
-      minBet: config.minBet,
-      maxPlayers: config.maxPlayers,
-      players,
+      maxPlayers: config.maxPlayers ?? 9,
       currentDealerIndex: 0,
       currentPlayIndex: 0,
-      phase: 'waiting',
       dealerCards: [],
       communityCards: [],
       pot: 0,
@@ -44,7 +50,7 @@ export class DealerBlackjack implements GameRules {
     };
   }
 
-  startPlay(gameState: GameState): GameState {
+  startPlay(gameState: GameState, config: RoomConfig): GameState {
     const bettingPlayers = gameState.players.filter(p => !p.isDealer && p.isOnline);
     
     if (bettingPlayers.length === 0) {
@@ -90,7 +96,7 @@ export class DealerBlackjack implements GameRules {
     }
 
     // Calculate pot from all bets
-    const pot = updatedPlayers.reduce((sum, player) => sum + player.currentBet, 0);
+    const pot = updatedPlayers.reduce((sum, player) => sum + (player.currentBet ?? 0), 0);
 
     return {
       ...gameState,
@@ -101,6 +107,8 @@ export class DealerBlackjack implements GameRules {
       seed,
       seedHash,
       timer: {
+        startedAt: Date.now(),
+        durationMs: 60000,
         type: 'acting',
         remaining: 60,
         targetPlayerId: bettingPlayers[0]?.id
@@ -108,7 +116,7 @@ export class DealerBlackjack implements GameRules {
     };
   }
 
-  processAction(gameState: GameState, action: PlayerAction): GameState {
+  applyAction(gameState: GameState, action: PlayerAction): GameState {
     const playerIndex = gameState.players.findIndex(p => p.id === action.playerId);
     if (playerIndex === -1) return gameState;
 
@@ -123,16 +131,16 @@ export class DealerBlackjack implements GameRules {
 
         // Deal a card
         const deck = shuffleDeck(createDeck(), gameState.seed);
-        const newCard = deck[player.cards.length + 2]; // Account for initial cards
+        const newCard = deck[(player.cards?.length ?? 0) + 2]; // Account for initial cards
         
         updatedPlayers[playerIndex] = {
           ...player,
-          cards: [...player.cards, newCard],
+          cards: [...(player.cards ?? []), newCard],
           hasActed: true
         };
 
         // Check if bust
-        const handValue = calculateHandValue(updatedPlayers[playerIndex].cards);
+        const handValue = calculateHandValue(updatedPlayers[playerIndex].cards ?? []);
         if (handValue > 21) {
           // Player busts, move to next player
           return this.moveToNextPlayer(gameState, updatedPlayers);
@@ -171,7 +179,7 @@ export class DealerBlackjack implements GameRules {
         return {
           ...gameState,
           players: updatedPlayers,
-          pot: updatedPlayers.reduce((sum, p) => sum + p.currentBet, 0)
+          pot: updatedPlayers.reduce((sum, p) => sum + (p.currentBet ?? 0), 0)
         };
 
       default:
@@ -179,7 +187,7 @@ export class DealerBlackjack implements GameRules {
     }
   }
 
-  checkGameEnd(gameState: GameState): boolean {
+  isPlayOver(gameState: GameState): boolean {
     if (gameState.phase === 'finished') return true;
     
     const bettingPlayers = gameState.players.filter(p => !p.isDealer && p.isOnline);
@@ -192,37 +200,37 @@ export class DealerBlackjack implements GameRules {
     return false;
   }
 
-  calculateWinnings(gameState: GameState): Record<string, number> {
+  settle(gameState: GameState): GameResult {
     const winnings: Record<string, number> = {};
     const dealer = gameState.players.find(p => p.isDealer);
     const bettingPlayers = gameState.players.filter(p => !p.isDealer && p.isOnline);
     
-    if (!dealer) return winnings;
+    if (!dealer) return { handNo: gameState.handNo, deltas: winnings };
 
-    const dealerHand = evaluateHand(dealer.cards);
+    const dealerHand = dealer.cards ?? [];
     let dealerWinnings = 0;
 
     bettingPlayers.forEach(player => {
-      const playerHand = evaluateHand(player.cards);
-      const bet = player.currentBet;
+      const playerHand = player.cards ?? [];
+      const bet = player.currentBet ?? 0;
       const result = compareHands(playerHand, dealerHand);
 
       let playerWinnings = 0;
 
       switch (result) {
-        case 'win':
-          if (playerHand.isBlackjack) {
+        case 1: // win
+          if (isBlackjack(playerHand)) {
             playerWinnings = Math.floor(bet * 1.5); // Blackjack pays 3:2
           } else {
             playerWinnings = bet;
           }
           dealerWinnings -= playerWinnings;
           break;
-        case 'lose':
+        case -1: // lose
           playerWinnings = -bet;
           dealerWinnings += bet;
           break;
-        case 'push':
+        case 0: // push
           // No change in balance
           break;
       }
@@ -233,7 +241,21 @@ export class DealerBlackjack implements GameRules {
     // Dealer winnings
     winnings[dealer.id] = dealerWinnings;
 
-    return winnings;
+    return { handNo: gameState.handNo, deltas: winnings };
+  }
+
+  // Legacy methods for backward compatibility
+  processAction(gameState: GameState, action: PlayerAction): GameState {
+    return this.applyAction(gameState, action);
+  }
+
+  checkGameEnd(gameState: GameState): boolean {
+    return this.isPlayOver(gameState);
+  }
+
+  calculateWinnings(gameState: GameState): Record<string, number> {
+    const result = this.settle(gameState);
+    return result.deltas;
   }
 
   getLegalActions(gameState: GameState, playerId: string): string[] {
@@ -251,7 +273,7 @@ export class DealerBlackjack implements GameRules {
 
       case 'acting':
         if (!player.isDealer && player.isOnline && !player.hasActed) {
-          const handValue = calculateHandValue(player.cards);
+          const handValue = calculateHandValue(player.cards ?? []);
           if (handValue < 21) {
             actions.push('hit', 'stand');
           } else {
@@ -276,6 +298,8 @@ export class DealerBlackjack implements GameRules {
         ...gameState,
         players,
         timer: {
+          startedAt: Date.now(),
+          durationMs: 60000,
           type: 'acting',
           remaining: 60,
           targetPlayerId: nextPlayer.id
@@ -288,6 +312,8 @@ export class DealerBlackjack implements GameRules {
         players,
         phase: 'dealer',
         timer: {
+          startedAt: Date.now(),
+          durationMs: 30000,
           type: 'dealer',
           remaining: 30
         }
