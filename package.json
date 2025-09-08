@@ -1,0 +1,26 @@
+{
+  "name": "royale-platform",
+  "version": "1.0.0",
+  "description": "Production-ready multiplayer blackjack platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.12",
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

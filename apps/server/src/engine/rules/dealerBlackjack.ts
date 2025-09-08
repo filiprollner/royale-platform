@@ -1,0 +1,320 @@
+import { 
+  GameRules, 
+  GameState, 
+  Player, 
+  PlayerAction, 
+  RoomConfig, 
+  Card,
+  createDeck,
+  shuffleDeck,
+  calculateHandValue,
+  isBlackjack,
+  isBust
+} from '@royale-platform/shared';
+import seedrandom from 'seedrandom';
+
+export class DealerBlackjack implements GameRules {
+  name = 'DealerBlackjack';
+  version = '1.0.0';
+  minPlayers = 2;
+  maxPlayers = 9;
+
+  initializeGame(config: RoomConfig): GameState {
+    const players: Player[] = [];
+    
+    return {
+      id: this.generateGameId(),
+      name: config.name,
+      minBet: config.minBet,
+      maxPlayers: config.maxPlayers,
+      players,
+      currentDealerIndex: 0,
+      currentPlayIndex: 0,
+      phase: 'waiting',
+      dealerCards: [],
+      communityCards: [],
+      pot: 0,
+      roundNumber: 1,
+      playNumber: 1,
+      seed: undefined,
+      seedHash: undefined
+    };
+  }
+
+  startPlay(gameState: GameState): GameState {
+    const bettingPlayers = gameState.players.filter(p => !p.isDealer && p.isOnline);
+    
+    if (bettingPlayers.length === 0) {
+      return { ...gameState, phase: 'finished' };
+    }
+
+    // Generate new seed for this play
+    const seed = this.generateSeed();
+    const seedHash = this.hashSeed(seed);
+    
+    // Create and shuffle deck
+    const deck = shuffleDeck(createDeck(), seed);
+    let deckIndex = 0;
+
+    // Reset player states
+    const updatedPlayers = gameState.players.map(player => ({
+      ...player,
+      cards: [],
+      currentBet: 0,
+      hasActed: false,
+      isAllIn: false
+    }));
+
+    // Deal initial cards
+    // Each betting player gets 2 face-up cards
+    bettingPlayers.forEach(player => {
+      const playerIndex = updatedPlayers.findIndex(p => p.id === player.id);
+      if (playerIndex !== -1) {
+        updatedPlayers[playerIndex].cards = [
+          deck[deckIndex++],
+          deck[deckIndex++]
+        ];
+      }
+    });
+
+    // Dealer gets 1 face-up, 1 face-down
+    const dealerIndex = updatedPlayers.findIndex(p => p.isDealer);
+    if (dealerIndex !== -1) {
+      updatedPlayers[dealerIndex].cards = [
+        deck[deckIndex++], // Face up
+        deck[deckIndex++]  // Face down
+      ];
+    }
+
+    // Calculate pot from all bets
+    const pot = updatedPlayers.reduce((sum, player) => sum + player.currentBet, 0);
+
+    return {
+      ...gameState,
+      players: updatedPlayers,
+      dealerCards: updatedPlayers[dealerIndex]?.cards || [],
+      pot,
+      phase: 'acting',
+      seed,
+      seedHash,
+      timer: {
+        type: 'acting',
+        remaining: 60,
+        targetPlayerId: bettingPlayers[0]?.id
+      }
+    };
+  }
+
+  processAction(gameState: GameState, action: PlayerAction): GameState {
+    const playerIndex = gameState.players.findIndex(p => p.id === action.playerId);
+    if (playerIndex === -1) return gameState;
+
+    const player = gameState.players[playerIndex];
+    const updatedPlayers = [...gameState.players];
+
+    switch (action.type) {
+      case 'hit':
+        if (gameState.phase !== 'acting' || player.hasActed || player.isDealer) {
+          return gameState;
+        }
+
+        // Deal a card
+        const deck = shuffleDeck(createDeck(), gameState.seed);
+        const newCard = deck[player.cards.length + 2]; // Account for initial cards
+        
+        updatedPlayers[playerIndex] = {
+          ...player,
+          cards: [...player.cards, newCard],
+          hasActed: true
+        };
+
+        // Check if bust
+        const handValue = calculateHandValue(updatedPlayers[playerIndex].cards);
+        if (handValue > 21) {
+          // Player busts, move to next player
+          return this.moveToNextPlayer(gameState, updatedPlayers);
+        }
+
+        return {
+          ...gameState,
+          players: updatedPlayers,
+          phase: 'acting'
+        };
+
+      case 'stand':
+        if (gameState.phase !== 'acting' || player.hasActed || player.isDealer) {
+          return gameState;
+        }
+
+        updatedPlayers[playerIndex] = {
+          ...player,
+          hasActed: true
+        };
+
+        return this.moveToNextPlayer(gameState, updatedPlayers);
+
+      case 'bet':
+        if (gameState.phase !== 'betting' || player.isDealer) {
+          return gameState;
+        }
+
+        const betAmount = Math.max(action.amount || 0, gameState.minBet);
+        updatedPlayers[playerIndex] = {
+          ...player,
+          currentBet: betAmount,
+          balance: player.balance - betAmount
+        };
+
+        return {
+          ...gameState,
+          players: updatedPlayers,
+          pot: updatedPlayers.reduce((sum, p) => sum + p.currentBet, 0)
+        };
+
+      default:
+        return gameState;
+    }
+  }
+
+  checkGameEnd(gameState: GameState): boolean {
+    if (gameState.phase === 'finished') return true;
+    
+    const bettingPlayers = gameState.players.filter(p => !p.isDealer && p.isOnline);
+    const allPlayersActed = bettingPlayers.every(p => p.hasActed);
+    
+    if (allPlayersActed && gameState.phase === 'acting') {
+      return true; // Move to dealer phase
+    }
+    
+    return false;
+  }
+
+  calculateWinnings(gameState: GameState): Record<string, number> {
+    const winnings: Record<string, number> = {};
+    const dealer = gameState.players.find(p => p.isDealer);
+    const bettingPlayers = gameState.players.filter(p => !p.isDealer && p.isOnline);
+    
+    if (!dealer) return winnings;
+
+    const dealerValue = calculateHandValue(dealer.cards);
+    const dealerBlackjack = isBlackjack(dealer.cards);
+    const dealerBust = isBust(dealer.cards);
+
+    let dealerWinnings = 0;
+
+    bettingPlayers.forEach(player => {
+      const playerValue = calculateHandValue(player.cards);
+      const playerBlackjack = isBlackjack(player.cards);
+      const playerBust = isBust(player.cards);
+      const bet = player.currentBet;
+
+      let playerWinnings = 0;
+
+      if (playerBust) {
+        // Player busts, loses bet
+        playerWinnings = -bet;
+        dealerWinnings += bet;
+      } else if (dealerBust) {
+        // Dealer busts, player wins
+        playerWinnings = bet;
+        dealerWinnings -= bet;
+      } else if (playerBlackjack && !dealerBlackjack) {
+        // Player blackjack beats dealer
+        playerWinnings = Math.floor(bet * 1.5);
+        dealerWinnings -= playerWinnings;
+      } else if (dealerBlackjack && !playerBlackjack) {
+        // Dealer blackjack beats player
+        playerWinnings = -bet;
+        dealerWinnings += bet;
+      } else if (playerValue > dealerValue) {
+        // Player wins
+        playerWinnings = bet;
+        dealerWinnings -= bet;
+      } else if (playerValue < dealerValue) {
+        // Player loses
+        playerWinnings = -bet;
+        dealerWinnings += bet;
+      }
+      // Push (tie) = 0 winnings
+
+      winnings[player.id] = playerWinnings;
+    });
+
+    // Dealer winnings
+    winnings[dealer.id] = dealerWinnings;
+
+    return winnings;
+  }
+
+  getLegalActions(gameState: GameState, playerId: string): string[] {
+    const player = gameState.players.find(p => p.id === playerId);
+    if (!player) return [];
+
+    const actions: string[] = [];
+
+    switch (gameState.phase) {
+      case 'betting':
+        if (!player.isDealer && player.isOnline) {
+          actions.push('bet');
+        }
+        break;
+
+      case 'acting':
+        if (!player.isDealer && player.isOnline && !player.hasActed) {
+          const handValue = calculateHandValue(player.cards);
+          if (handValue < 21) {
+            actions.push('hit', 'stand');
+          } else {
+            actions.push('stand');
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    return actions;
+  }
+
+  private moveToNextPlayer(gameState: GameState, players: Player[]): GameState {
+    const bettingPlayers = players.filter(p => !p.isDealer && p.isOnline);
+    const nextPlayer = bettingPlayers.find(p => !p.hasActed);
+    
+    if (nextPlayer) {
+      return {
+        ...gameState,
+        players,
+        timer: {
+          type: 'acting',
+          remaining: 60,
+          targetPlayerId: nextPlayer.id
+        }
+      };
+    } else {
+      // All players acted, move to dealer phase
+      return {
+        ...gameState,
+        players,
+        phase: 'dealer',
+        timer: {
+          type: 'dealer',
+          remaining: 30
+        }
+      };
+    }
+  }
+
+  private generateGameId(): string {
+    return `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private generateSeed(): string {
+    return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private hashSeed(seed: string): string {
+    const crypto = require('crypto');
+    return crypto.createHash('sha256').update(seed).digest('hex');
+  }
+}

@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-ink text-white font-sans;
+    background: 
+      radial-gradient(ellipse at center, rgba(14, 22, 34, 0.9) 0%, rgba(8, 12, 18, 0.95) 100%),
+      url('/noise.png') repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-glass/20 backdrop-blur-md border border-white/10 rounded-2xl shadow-floating;
+  }
+  
+  .poker-table {
+    @apply relative w-full h-full;
+  }
+  
+  .seat-glow {
+    @apply absolute -inset-4 rounded-full bg-accent/20 border-2 border-accent;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+}
