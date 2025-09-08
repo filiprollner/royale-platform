@@ -82,7 +82,6 @@ const mockGameState: GameState = {
   maxPlayers: 9,
   players: mockPlayers,
   currentDealerIndex: 0,
-  currentPlayIndex: 1,
   phase: 'acting',
   dealerCards: [
     { s: 'hearts', r: 'A' },
