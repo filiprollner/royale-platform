@@ -1,15 +1,18 @@
 export type PlayerId = string;
 
-export type Suit = "hearts" | "diamonds" | "clubs" | "spades";
-export type Rank = "A"|"K"|"Q"|"J"|"T"|"9"|"8"|"7"|"6"|"5"|"4"|"3"|"2";
-export type Card = { r: Rank; s: Suit };
+export type SeatPosition = {
+  index: number;
+  angle: number;
+  x: number;
+  y: number;
+};
 
 export type Player = {
   id: PlayerId;
   name: string;
   seat: number;
   balance: number;      // can be negative
-  hand?: Card[];
+  hand?: import('../utils/cards').Card[];
   isDealer?: boolean;
   connected?: boolean;
 };
@@ -32,7 +35,7 @@ export type GameState = {
   dealerSeat: number;
   minBet: number;
   players: Player[];
-  deck?: Card[];
+  deck?: import('../utils/cards').Card[];
   bets: Record<PlayerId, number>;
   expiresAt?: number; // ms epoch for 60s timers
 };
