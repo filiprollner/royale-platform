@@ -4,7 +4,7 @@ const suits = {
   hearts: "♥",
   diamonds: "♦",
   clubs: "♣",
-  spades: "♠"
+  spades: "♠",
 };
 
 export type Suit = keyof typeof suits;

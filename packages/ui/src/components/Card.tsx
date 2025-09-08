@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card as CardType, getCardDisplayName, getCardColor } from '@royale-platform/shared';
+import { Card as CardType, getCardDisplayName, getCardColor, suitSymbol, Suit } from '@royale-platform/shared';
 
 interface CardProps {
   card: CardType;
@@ -79,10 +79,7 @@ export const Card: React.FC<CardProps> = ({
       
       {/* Suit Symbol */}
       <div className="text-[1.2em] leading-none">
-        {card.suit === 'hearts' && '♥'}
-        {card.suit === 'diamonds' && '♦'}
-        {card.suit === 'clubs' && '♣'}
-        {card.suit === 'spades' && '♠'}
+        {suitSymbol(card.suit as Suit)}
       </div>
       
       {/* Bottom Right */}
