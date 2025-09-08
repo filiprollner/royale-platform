@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
+    "rootDir": "./src",
     "module": "commonjs",
     "target": "es2019",
     "esModuleInterop": true,
@@ -11,7 +12,7 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@royale-platform/shared": ["../../packages/shared/src"]
+      "@royale-platform/shared": ["../../packages/shared/dist"]
     }
   },
   "include": ["src"]
