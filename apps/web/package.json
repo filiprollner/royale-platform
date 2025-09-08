@@ -11,8 +11,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@royale-platform/shared": "workspace:*",
-    "@royale-platform/ui": "workspace:*",
+    "@royale-platform/shared": "file:../../packages/shared",
+    "@royale-platform/ui": "file:../../packages/ui",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.17.0",

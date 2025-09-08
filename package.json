@@ -19,8 +19,8 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "turbo": "^1.10.12",
-    "typescript": "^5.2.2",
+    "turbo": "latest",
+    "typescript": "^5.4.0",
     "@types/node": "^20.0.0"
   },
   "engines": {
