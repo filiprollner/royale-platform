@@ -1,47 +1,12 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { Server as SocketIOServer } from 'socket.io';
-import { GameNamespace } from './socket/GameNamespace';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
-const fastify = Fastify({
-  logger: true
+const app = Fastify({ logger: true });
+await app.register(cors, {
+  origin: (process.env.CORS_ORIGINS ?? '*').split(',').map(s => s.trim())
 });
+app.get('/healthz', async () => ({ ok: true }));
 
-// Start server
-const start = async () => {
-  try {
-    // CORS configuration
-    await fastify.register(cors, {
-      origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
-      credentials: true
-    });
-
-    // Health check endpoint
-    fastify.get('/healthz', async () => ({ ok: true }));
-
-    const port = parseInt(process.env.PORT || '3001');
-    const host = process.env.HOST || '0.0.0.0';
-    
-    await fastify.listen({ port, host });
-    console.log(`Server listening on ${host}:${port}`);
-
-    // Initialize Socket.IO
-    const io = new SocketIOServer(fastify.server, {
-      cors: {
-        origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
-        methods: ['GET', 'POST']
-      },
-      transports: ['websocket']
-    });
-
-    // Initialize game namespace
-    new GameNamespace(io);
-
-    console.log('Socket.IO server initialized');
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-
-start();
+// ...rest of your Socket.IO bootstrap

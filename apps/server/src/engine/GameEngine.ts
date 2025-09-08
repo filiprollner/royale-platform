@@ -258,3 +258,15 @@ export class GameEngine {
     }
   }
 }
+
+export function calculateHandValue(cards: { r: string; s: string }[]) {
+  let sum = 0, aces = 0;
+  for (const c of cards) {
+    const r = c.r;
+    if (r === 'A') { aces++; sum += 1; }
+    else if (r === 'T' || r === 'J' || r === 'Q' || r === 'K') { sum += 10; }
+    else { sum += parseInt(r, 10) || 0; }
+  }
+  while (aces > 0 && sum + 10 <= 21) { sum += 10; aces--; }
+  return sum;
+}

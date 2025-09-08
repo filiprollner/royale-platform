@@ -2,7 +2,7 @@ import { Card, CardSchema } from '../types/game';
 
 const suits = { hearts:"♥", diamonds:"♦", clubs:"♣", spades:"♠" };
 export type Suit = keyof typeof suits;
-export function suitSymbol(s: Suit) { return suits[s]; }
+export function suitSymbol(s: Suit){ return suits[s]; }
 
 export const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
 export const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;

@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
     "outDir": "dist",
+    "declaration": true,
+    "emitDeclarationOnly": false,
     "module": "commonjs",
     "target": "ES2020",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "declaration": true
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }
