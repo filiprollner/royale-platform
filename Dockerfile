@@ -31,10 +31,10 @@ COPY --from=build /app/packages/shared/package.json ./packages/shared/package.js
 # Copy built server
 COPY --from=build /app/apps/server/dist ./apps/server/dist
 COPY --from=build /app/apps/server/package.json ./apps/server/package.json
-COPY --from=build /app/apps/server/node_modules ./apps/server/node_modules
 
-# Set working directory to server
+# Install production dependencies
 WORKDIR /app/apps/server
+RUN npm ci --omit=dev || npm install --omit=dev
 
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
