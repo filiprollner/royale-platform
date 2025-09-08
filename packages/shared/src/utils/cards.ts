@@ -1,5 +1,18 @@
 import { Card, CardSchema } from '../types/game';
 
+const suits = {
+  hearts: "♥",
+  diamonds: "♦",
+  clubs: "♣",
+  spades: "♠"
+};
+
+export type Suit = keyof typeof suits;
+
+export function suitSymbol(s: Suit): string {
+  return suits[s];
+}
+
 export const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
 export const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
 
@@ -71,14 +84,7 @@ export function calculateHandValue(cards: Card[]): number {
 }
 
 export function getCardDisplayName(card: Card): string {
-  const suitSymbols = {
-    hearts: '♥',
-    diamonds: '♦',
-    clubs: '♣',
-    spades: '♠'
-  };
-  
-  return `${card.rank}${suitSymbols[card.suit]}`;
+  return `${card.rank}${suitSymbol(card.suit as Suit)}`;
 }
 
 export function isBlackjack(cards: Card[]): boolean {

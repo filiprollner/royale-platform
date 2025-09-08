@@ -15,10 +15,13 @@
     "type-check": "turbo run type-check",
     "clean": "turbo run clean"
   },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
   "devDependencies": {
     "turbo": "^1.10.12",
     "typescript": "^5.2.2",
-    "@types/node": "^20.8.0"
+    "@types/node": "^20.0.0"
   },
   "engines": {
     "node": ">=20.0.0"
