@@ -204,7 +204,7 @@ export class GameEngine {
         });
         
         // Start the play
-        this.gameState = this.rules.startPlay(this.gameState);
+        this.gameState = this.rules.startPlay(this.gameState, { minBet: this.gameState.minBet });
         this.startTimer();
         break;
 

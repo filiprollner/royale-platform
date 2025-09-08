@@ -68,9 +68,9 @@ export class DealerBlackjack implements GameRules {
     let deckIndex = 0;
 
     // Reset player states
-    const updatedPlayers = gameState.players.map(player => ({
+    const updatedPlayers: Player[] = gameState.players.map(player => ({
       ...player,
-      cards: [],
+      cards: [] as Card[],
       currentBet: 0,
       hasActed: false,
       isAllIn: false
@@ -143,7 +143,7 @@ export class DealerBlackjack implements GameRules {
           ...player,
           cards: newHand,
           hasActed: true
-        };
+        } as Player;
 
         // Check if bust
         const handValue = calculateHandValue(updatedPlayers[playerIndex].cards ?? []);
@@ -166,7 +166,7 @@ export class DealerBlackjack implements GameRules {
         updatedPlayers[playerIndex] = {
           ...player,
           hasActed: true
-        };
+        } as Player;
 
         return this.moveToNextPlayer(gameState, updatedPlayers);
 
@@ -180,7 +180,7 @@ export class DealerBlackjack implements GameRules {
           ...player,
           currentBet: betAmount,
           balance: player.balance - betAmount
-        };
+        } as Player;
 
         return {
           ...gameState,

@@ -39,7 +39,9 @@ export type RuntimeGameState = {
 
 // Augmented types for server use
 export type GameState = SharedGameState & RuntimeGameState;
-export type Player = SharedPlayer & RuntimePlayerState;
+export type Player = SharedPlayer & RuntimePlayerState & {
+  cards?: Card[];
+};
 
 // Server event constants (matching shared SocketEvents)
 export const ServerEvents = {
