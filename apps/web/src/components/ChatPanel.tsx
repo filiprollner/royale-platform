@@ -23,7 +23,8 @@ const Button: React.FC<{
   variant?: 'primary' | 'secondary' | 'ghost' | 'success';
   loading?: boolean;
   size?: 'sm' | 'md' | 'lg';
-}> = ({ children, onClick, disabled, className = '', variant = 'primary', loading = false, size = 'md' }) => {
+  type?: 'button' | 'submit' | 'reset';
+}> = ({ children, onClick, disabled, className = '', variant = 'primary', loading = false, size = 'md', type = 'button' }) => {
   const baseClasses = "inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
   
   const sizeClasses = {
@@ -41,6 +42,7 @@ const Button: React.FC<{
   
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled || loading}
       className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
