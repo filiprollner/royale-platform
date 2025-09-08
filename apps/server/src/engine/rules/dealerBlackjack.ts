@@ -9,7 +9,10 @@ import {
   shuffleDeck,
   calculateHandValue,
   isBlackjack,
-  isBust
+  isBust,
+  evaluateHand,
+  shouldDealerHit,
+  compareHands
 } from '@royale-platform/shared';
 import seedrandom from 'seedrandom';
 
@@ -196,46 +199,33 @@ export class DealerBlackjack implements GameRules {
     
     if (!dealer) return winnings;
 
-    const dealerValue = calculateHandValue(dealer.cards);
-    const dealerBlackjack = isBlackjack(dealer.cards);
-    const dealerBust = isBust(dealer.cards);
-
+    const dealerHand = evaluateHand(dealer.cards);
     let dealerWinnings = 0;
 
     bettingPlayers.forEach(player => {
-      const playerValue = calculateHandValue(player.cards);
-      const playerBlackjack = isBlackjack(player.cards);
-      const playerBust = isBust(player.cards);
+      const playerHand = evaluateHand(player.cards);
       const bet = player.currentBet;
+      const result = compareHands(playerHand, dealerHand);
 
       let playerWinnings = 0;
 
-      if (playerBust) {
-        // Player busts, loses bet
-        playerWinnings = -bet;
-        dealerWinnings += bet;
-      } else if (dealerBust) {
-        // Dealer busts, player wins
-        playerWinnings = bet;
-        dealerWinnings -= bet;
-      } else if (playerBlackjack && !dealerBlackjack) {
-        // Player blackjack beats dealer
-        playerWinnings = Math.floor(bet * 1.5);
-        dealerWinnings -= playerWinnings;
-      } else if (dealerBlackjack && !playerBlackjack) {
-        // Dealer blackjack beats player
-        playerWinnings = -bet;
-        dealerWinnings += bet;
-      } else if (playerValue > dealerValue) {
-        // Player wins
-        playerWinnings = bet;
-        dealerWinnings -= bet;
-      } else if (playerValue < dealerValue) {
-        // Player loses
-        playerWinnings = -bet;
-        dealerWinnings += bet;
+      switch (result) {
+        case 'win':
+          if (playerHand.isBlackjack) {
+            playerWinnings = Math.floor(bet * 1.5); // Blackjack pays 3:2
+          } else {
+            playerWinnings = bet;
+          }
+          dealerWinnings -= playerWinnings;
+          break;
+        case 'lose':
+          playerWinnings = -bet;
+          dealerWinnings += bet;
+          break;
+        case 'push':
+          // No change in balance
+          break;
       }
-      // Push (tie) = 0 winnings
 
       winnings[player.id] = playerWinnings;
     });

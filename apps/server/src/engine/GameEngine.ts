@@ -231,11 +231,16 @@ export class GameEngine {
     if (!dealer) return;
 
     // Dealer plays according to blackjack rules
-    while (calculateHandValue(dealer.cards) < 17) {
-      // Deal a card (simplified - in real implementation, use proper deck management)
-      const { createDeck, shuffleDeck } = require('@royale-platform/shared');
-      const deck = shuffleDeck(createDeck(), this.gameState.seed);
-      const newCard = deck[dealer.cards.length + 2]; // Account for initial cards
+    const { createDeck, shuffleDeck, evaluateHand, shouldDealerHit } = require('@royale-platform/shared');
+    const deck = shuffleDeck(createDeck(), this.gameState.seed);
+    let deckIndex = dealer.cards.length + 2; // Account for initial cards
+
+    while (true) {
+      const hand = evaluateHand(dealer.cards);
+      if (!shouldDealerHit(hand)) break;
+      
+      // Deal a card
+      const newCard = deck[deckIndex++];
       dealer.cards.push(newCard);
     }
 
