@@ -17,3 +17,21 @@ export function calculateHandValue(cards: Card[]): number {
 }
 
 export const isBlackjack = (cards: Card[]) => cards.length === 2 && calculateHandValue(cards) === 21;
+export const isBust = (cards: Card[]) => calculateHandValue(cards) > 21;
+
+// Aliases expected by server:
+export const evaluateHand = calculateHandValue;
+
+// Basic house rule: hit on <= 16, stand otherwise
+export function shouldDealerHit(cards: Card[]): boolean {
+  return calculateHandValue(cards) <= 16;
+}
+
+// Return 1 if a > b, -1 if a < b, 0 if tie
+export function compareHands(a: Card[], b: Card[]): 1 | -1 | 0 {
+  const va = calculateHandValue(a);
+  const vb = calculateHandValue(b);
+  if (va > vb) return 1;
+  if (va < vb) return -1;
+  return 0;
+}
