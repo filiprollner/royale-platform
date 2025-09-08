@@ -16,9 +16,10 @@ export const Table: React.FC<TableProps> = ({
   onSeatClick,
   className = '' 
 }) => {
-  const seats = Array.from({ length: gameState.maxPlayers }, (_, index) => {
-    const player = gameState.players.find(p => p.seatIndex === index);
-    const position = getSeatPosition(index);
+  const maxPlayers = gameState.maxPlayers || 9;
+  const seats = Array.from({ length: maxPlayers }, (_, index) => {
+    const player = gameState.players.find(p => p.seat === index);
+    const position = getSeatPosition(index, maxPlayers);
     
     return (
       <Seat

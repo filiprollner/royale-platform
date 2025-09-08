@@ -16,7 +16,7 @@ export const CommunityArea: React.FC<CommunityAreaProps> = ({
   const { dealerCards, communityCards, pot, phase } = gameState;
   const hasDealerCards = dealerCards && dealerCards.length > 0;
   const hasCommunityCards = communityCards && communityCards.length > 0;
-  const hasPot = pot > 0;
+  const hasPot = (pot || 0) > 0;
 
   return (
     <div className={`relative ${className}`}>
@@ -30,7 +30,7 @@ export const CommunityArea: React.FC<CommunityAreaProps> = ({
         >
           <div className="px-4 py-2 bg-ink-2/90 backdrop-blur-sm rounded-full border border-accent/30">
             <div className="text-accent text-sm font-bold">
-              Pot: ${pot.toLocaleString()}
+              Pot: ${(pot || 0).toLocaleString()}
             </div>
           </div>
         </motion.div>

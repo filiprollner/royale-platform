@@ -22,7 +22,7 @@ export const Card: React.FC<CardProps> = ({
   className = ''
 }) => {
   const sizeClass = sizeClasses[size];
-  const color = getCardColor(card.suit);
+  const color = getCardColor(card.s);
   const displayName = getCardDisplayName(card);
 
   if (!isFaceUp) {
@@ -74,17 +74,17 @@ export const Card: React.FC<CardProps> = ({
     >
       {/* Top Left */}
       <div className="absolute top-1 left-1 text-[0.7em] font-bold leading-none">
-        {card.rank}
+        {card.r}
       </div>
       
       {/* Suit Symbol */}
       <div className="text-[1.2em] leading-none">
-        {suitSymbol(card.suit as Suit)}
+        {suitSymbol(card.s as Suit)}
       </div>
       
       {/* Bottom Right */}
       <div className="absolute bottom-1 right-1 text-[0.7em] font-bold leading-none transform rotate-180">
-        {card.rank}
+        {card.r}
       </div>
     </motion.div>
   );

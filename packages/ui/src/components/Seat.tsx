@@ -117,14 +117,14 @@ export const Seat: React.FC<SeatProps> = ({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <ChipStack amount={player!.currentBet} size="sm" />
+            <ChipStack amount={player!.currentBet || 0} size="sm" />
           </motion.div>
         )}
 
         {/* Player Cards */}
         {hasCards && (
           <div className="mt-3 flex gap-1">
-            {player!.cards.map((card, index) => (
+            {(player!.cards || []).map((card, index) => (
               <motion.div
                 key={index}
                 initial={{ 

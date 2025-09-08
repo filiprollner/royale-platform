@@ -28,9 +28,28 @@ export function rngFromSeed(seed: string): () => number {
   for (let i = 0; i < seed.length; i++) {
     state = ((state << 5) - state + seed.charCodeAt(i)) & 0xffffffff;
   }
-  
+
   return () => {
     state = (state * 1664525 + 1013904223) & 0xffffffff;
     return state / 0x100000000;
   };
+}
+
+// Card display utilities
+export function getCardDisplayName(card: Card): string {
+  return `${card.r}${suitSymbol(card.s)}`;
+}
+
+export function getCardColor(suit: Suit): 'red' | 'black' {
+  return suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+}
+
+// Currency formatting
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }

@@ -21,3 +21,9 @@ export function generateSeatLayout(count: number, radius = 1): SeatPosition[] {
 
 /** Default 9-handed layout */
 export const DEFAULT_SEATS: SeatPosition[] = generateSeatLayout(9);
+
+// Get seat position by index
+export function getSeatPosition(index: number, totalSeats = 9): SeatPosition {
+  const seats = generateSeatLayout(totalSeats);
+  return seats[index] || seats[0];
+}
