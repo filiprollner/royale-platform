@@ -9,8 +9,15 @@ export class GameNamespace {
   private playerSockets: Map<string, string> = new Map(); // playerId -> socketId
 
   constructor(io: SocketIOServer) {
-    this.io = io;
-    this.setupNamespace();
+    try {
+      console.log('Initializing GameNamespace...');
+      this.io = io;
+      this.setupNamespace();
+      console.log('GameNamespace initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize GameNamespace:', error);
+      throw error;
+    }
   }
 
   private setupNamespace(): void {
