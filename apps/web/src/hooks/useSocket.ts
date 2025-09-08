@@ -1,7 +1,22 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useGameStore } from '../store/gameStore';
-import { SocketEvents, PlayerAction, ChatMessage } from '@royale-platform/shared';
+import { PlayerAction, ChatMessage } from '@royale-platform/shared';
+
+// Define SocketEvents locally to avoid import issues
+const SocketEvents = {
+  "room:state": "room:state",
+  "timer:tock": "timer:tock",
+  "chat:message": "chat:message",
+  "notice": "notice",
+  "error": "error",
+  "room:create": "room:create",
+  "room:join": "room:join",
+  "room:leave": "room:leave",
+  "hand:start": "hand:start",
+  "action": "action",
+  "chat:post": "chat:post",
+} as const;
 
 const SERVER_URL = (import.meta as any).env.VITE_SERVER_URL || 'ws://localhost:3001';
 
