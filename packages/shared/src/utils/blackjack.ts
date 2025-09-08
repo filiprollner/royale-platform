@@ -1,4 +1,4 @@
-import { Card, calculateHandValue } from './cards';
+import { Card, rankValue } from "./cards";
 
 export interface HandResult {
   value: number;
@@ -7,8 +7,22 @@ export interface HandResult {
   isSoft: boolean;
 }
 
+export function handValue(cards: Card[]): number {
+  let sum = 0;
+  let aces = 0;
+  for (const c of cards) {
+    if (c.r === "A") { aces += 1; sum += 1; }
+    else { sum += rankValue(c.r); }
+  }
+  // upgrade aces to 11 where possible
+  while (aces > 0 && sum + 10 <= 21) { sum += 10; aces--; }
+  return sum;
+}
+
+export const isBust = (cards: Card[]) => handValue(cards) > 21;
+
 export function evaluateHand(cards: Card[]): HandResult {
-  const value = calculateHandValue(cards);
+  const value = handValue(cards);
   const isBlackjack = cards.length === 2 && value === 21;
   const isBust = value > 21;
   const isSoft = hasSoftAce(cards);
@@ -26,10 +40,10 @@ function hasSoftAce(cards: Card[]): boolean {
   let otherValue = 0;
   
   for (const card of cards) {
-    if (card.rank === 'A') {
+    if (card.r === 'A') {
       aces++;
     } else {
-      otherValue += card.value;
+      otherValue += rankValue(card.r);
     }
   }
   
