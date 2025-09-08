@@ -96,8 +96,7 @@ const mockGameState: GameState = {
   },
   roundNumber: 1,
   playNumber: 1,
-  seed: 'demo-seed',
-  seedHash: 'demo-hash'
+  seed: 'demo-seed'
 };
 
 export const Design: React.FC = () => {
