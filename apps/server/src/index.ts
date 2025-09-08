@@ -17,9 +17,7 @@ const start = async () => {
     });
 
     // Health check endpoint
-    fastify.get('/healthz', async (request, reply) => {
-      return { status: 'ok', timestamp: new Date().toISOString() };
-    });
+    fastify.get('/healthz', async () => ({ ok: true }));
 
     const port = parseInt(process.env.PORT || '3001');
     const host = process.env.HOST || '0.0.0.0';
