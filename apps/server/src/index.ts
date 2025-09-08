@@ -22,10 +22,10 @@ async function main() {
   // Initialize game namespace
   new GameNamespace(io);
 
-  const port = Number(process.env.PORT ?? 3001);
+  const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? "0.0.0.0";
   
-  await app.listen({ port, host });
+  await httpServer.listen(port, host);
   console.log(`Server listening on ${host}:${port}`);
   console.log('Socket.IO server initialized');
 }

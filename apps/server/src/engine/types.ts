@@ -2,12 +2,11 @@ import type { GameState as SharedGameState, Player as SharedPlayer, Card, TimerS
 
 // Server-only timer model for internal state management
 export type RuntimeTimer = {
-  startedAt: number;
-  durationMs: number;
-  endsAt: number;
+  startedAt: number;  // Server-only tracking
+  durationMs: number; // Server-only tracking
   targetPlayerId?: string;
   type?: 'betting' | 'acting' | 'dealer';
-};
+} & TimerState; // Extend shared TimerState
 
 // Server-only player state extensions
 export type RuntimePlayerState = {
