@@ -18,8 +18,8 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@royale-platform/shared": ["../../packages/shared/src"],
-      "@royale-platform/ui": ["../../packages/ui/src"]
+      "@royale-platform/shared": ["../../packages/shared/dist"],
+      "@royale-platform/ui": ["../../packages/ui/dist"]
     }
   },
   "include": ["src"],
