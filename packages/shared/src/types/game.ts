@@ -1,8 +1,8 @@
-export type PlayerId = string;
+import type { Card, Rank, Suit } from "../utils/cards";
 
-export type Suit = "hearts" | "diamonds" | "clubs" | "spades";
-export type Rank = "A"|"K"|"Q"|"J"|"T"|"9"|"8"|"7"|"6"|"5"|"4"|"3"|"2";
-export type Card = { r: Rank; s: Suit };
+export type PlayerId = string;
+// Re-export these so other packages can import from "@royale-platform/shared" only:
+export type { Card, Rank, Suit };
 
 export type Phase =
   | "lobby"
@@ -16,34 +16,37 @@ export type Phase =
   | "acting"
   | "finished";
 
+export type SeatPosition = number;
+
 export type RoomConfig = {
   name?: string;
   minBet: number;
   maxPlayers?: number;   // default handled in server if missing
-  seats?: number;        // deprecated by maxPlayers, keep for compatibility
+  seats?: number;        // deprecated by maxPlayers, kept for compatibility
 };
 
 export type Player = {
   id: PlayerId;
   name: string;
-  seat: number;          // existing
-  seatIndex?: number;    // some code references this
+  seat: number;
+  seatIndex?: number;
   balance: number;       // can be negative
-  // runtime UI/engine flags used by server code:
+
+  // runtime flags referenced by server/UI
   isDealer?: boolean;
   isOnline?: boolean;
   hasActed?: boolean;
   isAllIn?: boolean;
   avatar?: string;
 
-  // poker/blackjack state fields referenced by server:
-  cards?: Card[];        // a.k.a. hand
+  // per-hand state
+  cards?: Card[];
   currentBet?: number;
 };
 
 export type TimerState = {
   endsAt: number;        // epoch ms
-  seconds?: number;      // convenience
+  seconds?: number;
 };
 
 export type GameState = {
@@ -58,26 +61,26 @@ export type GameState = {
   minBet: number;
   maxPlayers?: number;
 
-  // bookkeeping
+  // players & bets
   players: Player[];
   bets: Record<PlayerId, number>;
 
-  // blackjack / table state the server touches
+  // decks & cards
   deck?: Card[];
   communityCards?: Card[];
   dealerCards?: Card[];
 
-  // round/play counters referenced by server
+  // counters
   playNumber?: number;
   roundNumber?: number;
 
-  // extra runtime fields server references
+  // runtime extras
   pot?: number;
   timer?: TimerState;
   seed?: string;
 
-  // timers
-  expiresAt?: number; // legacy, okay to keep
+  // legacy timer
+  expiresAt?: number;
 };
 
 export type GameResult = {
@@ -85,7 +88,7 @@ export type GameResult = {
   deltas: Record<PlayerId, number>; // zero-sum
 };
 
-// ACTIONS — include playerId because server reads it
+// ACTIONS — include playerId; server reads it
 export type PlayerActionBase = { playerId: PlayerId };
 export type PlayerAction =
   | (PlayerActionBase & { type: "bet"; amount: number })
@@ -93,7 +96,7 @@ export type PlayerAction =
   | (PlayerActionBase & { type: "stand" });
 
 export type ChatMessage = {
-  id?: string;        // server creates one in some places
+  id?: string;        // server may assign one
   from: PlayerId;
   text: string;
   at: number;         // ms epoch
@@ -115,7 +118,6 @@ export type SocketEventMap = {
   "notice": (msg: string) => void;
 };
 
-// Value object so code like `SocketEvents["room:state"]` works.
 export const SocketEvents = {
   "room:state": "room:state",
   "timer:tock": "timer:tock",
