@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@royale-platform/shared": "file:../shared",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "framer-motion": "^10.16.4",
