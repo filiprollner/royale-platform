@@ -21,3 +21,16 @@ export function shuffleDeck(deck: Card[], rng: () => number = Math.random): Card
   }
   return a;
 }
+
+export function rngFromSeed(seed: string): () => number {
+  // Simple seeded RNG implementation
+  let state = 0;
+  for (let i = 0; i < seed.length; i++) {
+    state = ((state << 5) - state + seed.charCodeAt(i)) & 0xffffffff;
+  }
+  
+  return () => {
+    state = (state * 1664525 + 1013904223) & 0xffffffff;
+    return state / 0x100000000;
+  };
+}

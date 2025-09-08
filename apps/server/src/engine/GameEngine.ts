@@ -12,7 +12,8 @@ import {
   isBust,
   evaluateHand,
   shouldDealerHit,
-  compareHands
+  compareHands,
+  rngFromSeed
 } from '@royale-platform/shared';
 import { DealerBlackjack } from './rules/dealerBlackjack';
 import { GameState, Player, RuntimeTimer } from './types';
@@ -91,11 +92,12 @@ export class GameEngine {
 
     // Start betting phase
     this.gameState.phase = 'betting';
+    const now = Date.now();
     this.gameState.timer = {
-      startedAt: Date.now(),
+      startedAt: now,
       durationMs: 60000,
-      type: 'betting',
-      remaining: 60
+      endsAt: now + 60000,
+      type: 'betting'
     };
 
     this.startTimer();
@@ -180,8 +182,7 @@ export class GameEngine {
     this.timer = setInterval(() => {
       if (!this.gameState.timer) return;
 
-      const remaining = Math.max(0, Math.ceil((this.gameState.timer.startedAt + this.gameState.timer.durationMs - Date.now()) / 1000));
-      this.gameState.timer.remaining = remaining;
+      const remaining = Math.max(0, Math.ceil((this.gameState.timer.endsAt - Date.now()) / 1000));
 
       if (remaining <= 0) {
         this.handleTimerExpired();
@@ -228,22 +229,24 @@ export class GameEngine {
     const nextPlayer = bettingPlayers.find(p => !p.hasActed);
     
     if (nextPlayer) {
+      const now = Date.now();
       this.gameState.timer = {
-        startedAt: Date.now(),
+        startedAt: now,
         durationMs: 60000,
+        endsAt: now + 60000,
         type: 'acting',
-        remaining: 60,
         targetPlayerId: nextPlayer.id
       };
       this.startTimer();
     } else {
       // All players acted, move to dealer phase
       this.gameState.phase = 'dealer';
+      const now = Date.now();
       this.gameState.timer = {
-        startedAt: Date.now(),
+        startedAt: now,
         durationMs: 30000,
-        type: 'dealer',
-        remaining: 30
+        endsAt: now + 30000,
+        type: 'dealer'
       };
       this.startTimer();
     }
@@ -256,7 +259,8 @@ export class GameEngine {
     if (!dealer) return;
 
     // Dealer plays according to blackjack rules
-    const deck = shuffleDeck(createDeck(), this.gameState.seed);
+    const rng = this.gameState.seed ? rngFromSeed(this.gameState.seed) : undefined;
+    const deck = shuffleDeck(createDeck(), rng);
     let deckIndex = (dealer.cards?.length ?? 0) + 2; // Account for initial cards
 
     while (true) {

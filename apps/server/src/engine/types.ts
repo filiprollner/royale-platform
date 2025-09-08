@@ -4,9 +4,9 @@ import type { GameState as SharedGameState, Player as SharedPlayer, Card, TimerS
 export type RuntimeTimer = {
   startedAt: number;
   durationMs: number;
+  endsAt: number;
   targetPlayerId?: string;
   type?: 'betting' | 'acting' | 'dealer';
-  remaining?: number;
 };
 
 // Server-only player state extensions

@@ -13,7 +13,8 @@ import {
   isBust,
   evaluateHand,
   shouldDealerHit,
-  compareHands
+  compareHands,
+  rngFromSeed
 } from '@royale-platform/shared';
 import { GameState, Player } from '../types';
 import seedrandom from 'seedrandom';
@@ -62,7 +63,8 @@ export class DealerBlackjack implements GameRules {
     const seedHash = this.hashSeed(seed);
     
     // Create and shuffle deck
-    const deck = shuffleDeck(createDeck(), seed);
+    const rng = rngFromSeed(seed);
+    const deck = shuffleDeck(createDeck(), rng);
     let deckIndex = 0;
 
     // Reset player states
@@ -79,20 +81,22 @@ export class DealerBlackjack implements GameRules {
     bettingPlayers.forEach(player => {
       const playerIndex = updatedPlayers.findIndex(p => p.id === player.id);
       if (playerIndex !== -1) {
-        updatedPlayers[playerIndex].cards = [
+        const playerHand: Card[] = [
           deck[deckIndex++],
           deck[deckIndex++]
         ];
+        updatedPlayers[playerIndex].cards = playerHand;
       }
     });
 
     // Dealer gets 1 face-up, 1 face-down
     const dealerIndex = updatedPlayers.findIndex(p => p.isDealer);
     if (dealerIndex !== -1) {
-      updatedPlayers[dealerIndex].cards = [
+      const dealerHand: Card[] = [
         deck[deckIndex++], // Face up
         deck[deckIndex++]  // Face down
       ];
+      updatedPlayers[dealerIndex].cards = dealerHand;
     }
 
     // Calculate pot from all bets
@@ -109,8 +113,8 @@ export class DealerBlackjack implements GameRules {
       timer: {
         startedAt: Date.now(),
         durationMs: 60000,
+        endsAt: Date.now() + 60000,
         type: 'acting',
-        remaining: 60,
         targetPlayerId: bettingPlayers[0]?.id
       }
     };
@@ -130,12 +134,14 @@ export class DealerBlackjack implements GameRules {
         }
 
         // Deal a card
-        const deck = shuffleDeck(createDeck(), gameState.seed);
+        const rng = gameState.seed ? rngFromSeed(gameState.seed) : undefined;
+        const deck = shuffleDeck(createDeck(), rng);
         const newCard = deck[(player.cards?.length ?? 0) + 2]; // Account for initial cards
         
+        const newHand: Card[] = [...(player.cards ?? []), newCard];
         updatedPlayers[playerIndex] = {
           ...player,
-          cards: [...(player.cards ?? []), newCard],
+          cards: newHand,
           hasActed: true
         };
 
@@ -294,28 +300,30 @@ export class DealerBlackjack implements GameRules {
     const nextPlayer = bettingPlayers.find(p => !p.hasActed);
     
     if (nextPlayer) {
+      const now = Date.now();
       return {
         ...gameState,
         players,
         timer: {
-          startedAt: Date.now(),
+          startedAt: now,
           durationMs: 60000,
+          endsAt: now + 60000,
           type: 'acting',
-          remaining: 60,
           targetPlayerId: nextPlayer.id
         }
       };
     } else {
       // All players acted, move to dealer phase
+      const now = Date.now();
       return {
         ...gameState,
         players,
         phase: 'dealer',
         timer: {
-          startedAt: Date.now(),
+          startedAt: now,
           durationMs: 30000,
-          type: 'dealer',
-          remaining: 30
+          endsAt: now + 30000,
+          type: 'dealer'
         }
       };
     }
