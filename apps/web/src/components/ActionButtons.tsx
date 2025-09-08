@@ -9,7 +9,7 @@ const Button: React.FC<{
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'success';
   loading?: boolean;
   size?: 'sm' | 'md' | 'lg';
 }> = ({ children, onClick, disabled, className = '', variant = 'primary', loading = false, size = 'md' }) => {
@@ -24,7 +24,8 @@ const Button: React.FC<{
   const variantClasses = {
     primary: "bg-accent text-white hover:bg-accent/90 focus:ring-accent",
     secondary: "bg-white/10 text-white hover:bg-white/20 focus:ring-white/50",
-    ghost: "bg-transparent text-white hover:bg-white/10 focus:ring-white/50"
+    ghost: "bg-transparent text-white hover:bg-white/10 focus:ring-white/50",
+    success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
   };
   
   return (
