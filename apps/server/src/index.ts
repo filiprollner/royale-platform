@@ -7,20 +7,20 @@ const fastify = Fastify({
   logger: true
 });
 
-// CORS configuration
-await fastify.register(cors, {
-  origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true
-});
-
-// Health check endpoint
-fastify.get('/healthz', async (request, reply) => {
-  return { status: 'ok', timestamp: new Date().toISOString() };
-});
-
 // Start server
 const start = async () => {
   try {
+    // CORS configuration
+    await fastify.register(cors, {
+      origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+      credentials: true
+    });
+
+    // Health check endpoint
+    fastify.get('/healthz', async (request, reply) => {
+      return { status: 'ok', timestamp: new Date().toISOString() };
+    });
+
     const port = parseInt(process.env.PORT || '3001');
     const host = process.env.HOST || '0.0.0.0';
     
