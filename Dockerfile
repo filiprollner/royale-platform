@@ -18,7 +18,7 @@ COPY --from=deps /app /app
 # copy the rest of the source
 COPY . .
 # build all packages via turborepo
-RUN npm run build
+RUN npx turbo run build
 
 # --- runtime (server)
 FROM node:20-slim AS runtime
