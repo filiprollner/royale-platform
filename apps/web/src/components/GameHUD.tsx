@@ -1,6 +1,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GameState, Player, formatCurrency, formatTime } from '@royale-platform/shared';
+import { GameState, Player } from '@royale-platform/shared';
+
+// Define utility functions locally to avoid import issues
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+const formatTime = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+};
 
 interface GameHUDProps {
   gameState: GameState;
