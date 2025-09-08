@@ -1,53 +1,48 @@
-import Fastify from "fastify";
-import cors from "@fastify/cors";
 import { createServer } from "http";
-import { Server } from "socket.io";
-import { GameNamespace } from "./socket/GameNamespace";
 
 async function main() {
   try {
-    console.log('Starting server...');
+    console.log('Starting minimal server...');
     
-    const app = Fastify({ logger: true });
-    await app.register(cors, {
-      origin: (process.env.CORS_ORIGINS ?? "*").split(",").map(s => s.trim())
-    });
-
-    app.get("/healthz", async () => ({ ok: true }));
-
-    const httpServer = createServer(app as any);
-    const io = new Server(httpServer, { 
-      path: "/game", 
-      cors: { origin: "*" }
-    });
-
-    // Initialize game namespace
-    console.log('Initializing game namespace...');
-    try {
-      new GameNamespace(io);
-      console.log('GameNamespace created successfully');
-    } catch (error) {
-      console.error('Failed to create GameNamespace:', error);
-      throw error;
-    }
-
     const port = Number(process.env.PORT ?? 3000);
     const host = process.env.HOST ?? "0.0.0.0";
     
-    console.log(`Starting server on ${host}:${port}`);
-    httpServer.listen(port, host, () => {
-      console.log(`Server listening on ${host}:${port}`);
-      console.log('Socket.IO server initialized');
+    console.log(`Creating HTTP server on ${host}:${port}`);
+    
+    const server = createServer((req, res) => {
+      console.log(`Request: ${req.method} ${req.url}`);
+      
+      if (req.url === '/healthz') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+        return;
+      }
+      
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('Hello from Royale Platform Server!');
     });
 
-    // Handle server errors
-    httpServer.on('error', (err) => {
-      console.error('HTTP Server error:', err);
+    server.listen(port, host, () => {
+      console.log(`✅ Server listening on ${host}:${port}`);
+      console.log('✅ Health check available at /healthz');
+    });
+
+    server.on('error', (err) => {
+      console.error('❌ HTTP Server error:', err);
       process.exit(1);
     });
 
+    // Keep the process alive
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
+    });
+
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }
