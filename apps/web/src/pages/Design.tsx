@@ -81,6 +81,12 @@ const mockGameState: GameState = {
   minBet: 50,
   maxPlayers: 9,
   players: mockPlayers,
+  bets: {
+    'player1': 100,
+    'player2': 150,
+    'player3': 200,
+    'player4': 75
+  },
   currentDealerIndex: 0,
   phase: 'acting',
   dealerCards: [
