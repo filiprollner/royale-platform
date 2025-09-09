@@ -18,7 +18,7 @@ const SocketEvents = {
   "chat:post": "chat:post",
 } as const;
 
-const SERVER_URL = (import.meta as any).env.VITE_SERVER_URL || 'ws://localhost:3001';
+const SERVER_URL = (import.meta as any).env.VITE_SERVER_URL || 'https://royale-platform.fly.dev';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
