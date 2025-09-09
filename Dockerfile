@@ -25,7 +25,9 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Copy built shared package to the correct location for file: imports
-COPY --from=build /app/packages/shared ./packages/shared
+COPY --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=build /app/packages/shared/tsconfig.json ./packages/shared/tsconfig.json
 
 # Copy built server
 COPY --from=build /app/apps/server/dist ./apps/server/dist
