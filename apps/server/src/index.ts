@@ -1,41 +1,65 @@
-import { createServer } from "http";
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import { GameNamespace } from './socket/GameNamespace';
 
 async function main() {
   try {
-    console.log('Starting minimal server...');
+    console.log('🚀 Starting Royale Platform Server...');
     
     const port = Number(process.env.PORT ?? 3000);
     const host = process.env.HOST ?? "0.0.0.0";
     
-    console.log(`Creating HTTP server on ${host}:${port}`);
-    
-    const server = createServer((req, res) => {
-      console.log(`Request: ${req.method} ${req.url}`);
-      
-      if (req.url === '/healthz') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true }));
-        return;
+    // Create Fastify app
+    const app = Fastify({ 
+      logger: {
+        level: 'info',
+        transport: {
+          target: 'pino-pretty'
+        }
       }
-      
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('Hello from Royale Platform Server!');
     });
 
-    server.listen(port, host, () => {
+    // Register CORS
+    await app.register(cors, {
+      origin: (process.env.CORS_ORIGINS ?? '*').split(',').map(s => s.trim())
+    });
+
+    // Health check route
+    app.get('/healthz', async () => ({ ok: true }));
+
+    // Create HTTP server
+    const httpServer = createServer(app as any);
+    
+    // Create Socket.IO server
+    const io = new SocketIOServer(httpServer, {
+      path: '/game',
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
+    });
+
+    // Initialize game namespace
+    new GameNamespace(io);
+
+    // Start server
+    httpServer.listen(port, host, () => {
       console.log(`✅ Server listening on ${host}:${port}`);
       console.log('✅ Health check available at /healthz');
+      console.log('✅ Socket.IO available at /game');
     });
 
-    server.on('error', (err) => {
+    httpServer.on('error', (err) => {
       console.error('❌ HTTP Server error:', err);
       process.exit(1);
     });
 
-    // Keep the process alive
+    // Graceful shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM received, shutting down gracefully');
-      server.close(() => {
+      httpServer.close(() => {
         console.log('Server closed');
         process.exit(0);
       });
