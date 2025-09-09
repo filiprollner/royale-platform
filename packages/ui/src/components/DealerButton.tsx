@@ -1,6 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { getSeatPosition } from '@royale-platform/shared';
+
+// Define getSeatPosition locally to avoid import issues
+const getSeatPosition = (index: number, totalSeats = 9) => {
+  const startAngle = -Math.PI / 2; // start at top
+  const angle = startAngle + (index * 2 * Math.PI) / totalSeats;
+  return {
+    index,
+    angle,
+    x: Math.cos(angle),
+    y: Math.sin(angle),
+  };
+};
 
 interface DealerButtonProps {
   dealerIndex: number;

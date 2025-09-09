@@ -1,6 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card as CardType, getCardDisplayName, getCardColor, suitSymbol, Suit } from '@royale-platform/shared';
+import { Card as CardType, Suit } from '@royale-platform/shared';
+
+// Define utility functions locally to avoid import issues
+const suits = { hearts:"♥", diamonds:"♦", clubs:"♣", spades:"♠" } as const;
+
+const suitSymbol = (s: Suit): string => suits[s];
+
+const getCardDisplayName = (card: CardType): string => {
+  return `${card.r}${suitSymbol(card.s)}`;
+};
+
+const getCardColor = (suit: Suit): 'red' | 'black' => {
+  return suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+};
 
 interface CardProps {
   card: CardType;
