@@ -4,7 +4,7 @@ export type Suit = keyof typeof suits;
 export type Rank = "A"|"K"|"Q"|"J"|"T"|"9"|"8"|"7"|"6"|"5"|"4"|"3"|"2";
 export type Card = { r: Rank; s: Suit };
 
-export function suitSymbol(s: Suit){ return suits[s]; }
+export function suitSymbol(s: Suit){ return suits[s]; } // Get suit symbol
 
 export function createDeck(): Card[] {
   const suitKeys = Object.keys(suits) as Suit[];
