@@ -45,7 +45,7 @@ export function getCardColor(suit: Suit): 'red' | 'black' {
   return suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
 }
 
-// Currency formatting
+// Currency formatting - Updated for Vercel build fix
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
