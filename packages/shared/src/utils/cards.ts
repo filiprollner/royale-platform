@@ -1,3 +1,4 @@
+// Card suit symbols and types
 export const suits = { hearts:"♥", diamonds:"♦", clubs:"♣", spades:"♠" } as const;
 export type Suit = keyof typeof suits;
 export type Rank = "A"|"K"|"Q"|"J"|"T"|"9"|"8"|"7"|"6"|"5"|"4"|"3"|"2";
