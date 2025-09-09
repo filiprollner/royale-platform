@@ -35,7 +35,7 @@ export const useSocket = () => {
   } = useGameStore();
 
   useEffect(() => {
-    // Initialize socket connection
+    // Initialize socket connection with correct /game path
     socketRef.current = io(`${SERVER_URL}/game`, {
       transports: ['websocket'],
       autoConnect: true
