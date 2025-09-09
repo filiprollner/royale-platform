@@ -4,7 +4,7 @@ WORKDIR /app
 # Copy root package files
 COPY package.json package-lock.json ./
 
-# Build shared package first
+# Build shared package first (CommonJS for server compatibility)
 COPY packages/shared ./packages/shared
 WORKDIR /app/packages/shared
 RUN npm ci --include=dev || npm install --include=dev
