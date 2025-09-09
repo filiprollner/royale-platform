@@ -18,7 +18,7 @@ const SocketEvents = {
   "chat:post": "chat:post",
 } as const;
 
-const SERVER_URL = (import.meta as any).env.VITE_SERVER_URL || 'https://royale-platform.fly.dev'; // Production server URL for WebSocket
+const SERVER_URL = (import.meta as any).env.VITE_SERVER_URL || 'https://royale-platform.fly.dev'; // Production server URL for WebSocket connection
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
