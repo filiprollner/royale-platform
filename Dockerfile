@@ -24,9 +24,8 @@ FROM node:20-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy built shared package
-COPY --from=build /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build /app/packages/shared/package.json ./packages/shared/package.json
+# Copy built shared package to the correct location for file: imports
+COPY --from=build /app/packages/shared ./packages/shared
 
 # Copy built server
 COPY --from=build /app/apps/server/dist ./apps/server/dist
